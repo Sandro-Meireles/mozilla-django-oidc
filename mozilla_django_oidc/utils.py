@@ -80,7 +80,7 @@ def add_state_and_nonce_to_session(request, state, params):
     # which element has the oldest "add_on" time.
     limit = import_from_settings('OIDC_MAX_STATES', 50)
     if len(request.session['oidc_states']) >= limit:
-        LOGGER.info(
+        LOGGER.debug(
             'User has more than {} "oidc_states" in his session, '
             'deleting the oldest one!'.format(limit)
         )
@@ -91,9 +91,12 @@ def add_state_and_nonce_to_session(request, state, params):
                 oldest_state = item_state
                 oldest_added_on = item['added_on']
         if oldest_state:
+            LOGGER.debug(f"Deletando:\x1b[33;20m {oldest_state}")
             del request.session['oidc_states'][oldest_state]
 
     request.session['oidc_states'][state] = {
         'nonce': nonce,
         'added_on': time.time(),
     }
+
+    LOGGER.debug(f"\n\n{request.session['oidc_states'].keys()}\n")

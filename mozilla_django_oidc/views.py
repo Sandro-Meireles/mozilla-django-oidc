@@ -1,4 +1,5 @@
 import time
+import logging
 
 from django.contrib import auth
 from django.core.exceptions import SuspiciousOperation
@@ -20,6 +21,9 @@ from mozilla_django_oidc.utils import (absolutify,
                                        import_from_settings)
 
 from urllib.parse import urlencode
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class OIDCAuthenticationCallbackView(View):
@@ -85,7 +89,13 @@ class OIDCAuthenticationCallbackView(View):
             # State and Nonce are stored in the session "oidc_states" dictionary.
             # State is the key, the value is a dictionary with the Nonce in the "nonce" field.
             state = request.GET.get('state')
+
+            time.sleep(1)
+
             if state not in request.session['oidc_states']:
+                
+                LOGGER.debug(f"state: {state}")
+                LOGGER.debug(f"oidc_states: {request.session['oidc_states'].keys()}")
                 msg = 'OIDC callback state not found in session `oidc_states`!'
                 raise SuspiciousOperation(msg)
 
@@ -162,6 +172,7 @@ class OIDCAuthenticationRequestView(View):
     def get(self, request):
         """OIDC client authentication initialization HTTP endpoint"""
         state = get_random_string(self.get_settings('OIDC_STATE_SIZE', 32))
+        LOGGER.debug(f"Request state: {state}")
         redirect_field_name = self.get_settings('OIDC_REDIRECT_FIELD_NAME', 'next')
         reverse_url = self.get_settings('OIDC_AUTHENTICATION_CALLBACK_URL',
                                         'oidc_authentication_callback')
